@@ -4,16 +4,18 @@ const Emojis = () => {
   const [progress, setProgress] = useState(0);
   const [emoji, setEmoji] = useState('😀');
   const [isDone, setIsDone] = useState(false);
+  const [isVisible, setIsVisible] = useState(true); // State to control visibility of the emoji display
+  const [isPlusVisible, setIsPlusVisible] = useState(false); // State to control visibility of the plus button
 
   const emojis = ['😀', '😁', '😂', '🤣', '😃', '😄', '😅', '😆', '😉', '😊'];
 
   useEffect(() => {
     let intervalId;
-    
-    if (!isDone) {
+
+    if (isVisible && !isDone) { // Check visibility before starting the interval
       // Progress bar and emoji change
       intervalId = setInterval(() => {
-        setProgress(prev => {
+        setProgress((prev) => {
           if (prev < 100) {
             return prev + 2; // Fills in 50 seconds
           } else {
@@ -29,93 +31,82 @@ const Emojis = () => {
     }
 
     return () => clearInterval(intervalId);
-  }, [isDone, emojis]);
+  }, [isVisible, isDone, emojis]);
+
+  const handleContinue = () => {
+    // Reset states to restart the game
+    setProgress(0);
+    setIsDone(false);
+    setEmoji('😀'); // Reset emoji to initial state
+  };
+
+  const handleClose = () => {
+    setIsVisible(false); // Hide the emoji display
+    setIsPlusVisible(true); // Show the plus button
+  };
+
+  const handleShow = () => {
+    setIsVisible(true); // Show the emoji display again
+    setIsPlusVisible(false); // Hide the plus button
+  };
 
   return (
-    <div style={styles.modal}>
-      <div style={styles.header}>
-        <button style={styles.closeBtn} onClick={() => alert('Modal Closed!')}>X</button>
-      </div>
-      <div style={styles.content}>
-        {isDone ? (
-          <>
-            <div style={styles.emoji}>✅</div>
-            <p style={styles.message}>Done!</p>
-          </>
-        ) : (
-          <>
-            <div style={styles.emoji}>{emoji}</div>
-            <p style={styles.message}>Processing...</p>
-            <div style={styles.progressBarContainer}>
-              <div style={{ ...styles.progressBar, width: `${progress}%` }}></div>
-            </div>
-            <p style={styles.timeLeft}>Remaining: {Math.max(0, (50 - Math.round(progress / 2)))} seconds</p>
-          </>
-        )}
-      </div>
-      <button style={styles.continueBtn} disabled={!isDone}>Continue</button>
+    <div className="relative">
+      {isVisible ? (
+        <div className="w-80 h-64 bg-white rounded-lg shadow-lg p-6 text-center">
+          <div className="flex justify-end">
+            <button
+              className="text-gray-600 text-xl cursor-pointer"
+              onClick={handleClose} // Call handleClose to hide the div
+            >
+              X
+            </button>
+          </div>
+          <div className="mt-4">
+            {isDone ? (
+              <>
+                <div className="text-5xl">✅</div>
+                <p className="text-lg mt-4">Done!</p>
+              </>
+            ) : (
+              <>
+                <div className="text-5xl">{emoji}</div>
+                <p className="text-lg mt-4">Processing...</p>
+                <div className="w-full h-2 bg-gray-200 rounded mt-4">
+                  <div
+                    className="h-2 bg-green-500 rounded"
+                    style={{ width: `${progress}%` }}
+                  ></div>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">
+                  Remaining: {Math.max(0, 50 - Math.round(progress / 2))} seconds
+                </p>
+              </>
+            )}
+          </div>
+          <button
+            className={`mt-6 px-4 py-2 bg-green-500 text-white rounded-lg ${
+              !isDone ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+            }`}
+            onClick={handleContinue} // Add onClick to handle restart
+            disabled={!isDone}
+          >
+            Continue
+          </button>
+        </div>
+      ) : (
+        // Render the plus button when the emoji display is hidden
+        isPlusVisible && (
+          <button
+            className="absolute bottom-4 right-4 px-4 py-2 bg-blue-500 text-white rounded-lg"
+            onClick={handleShow} // Show the emoji display again
+          >
+            +
+          </button>
+        )
+      )}
     </div>
   );
-};
-
-// Styles
-const styles = {
-  modal: {
-    width: '300px',
-    height: '250px',
-    backgroundColor: '#fff',
-    borderRadius: '10px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-    padding: '20px',
-    textAlign: 'center',
-    position: 'relative',
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-  },
-  closeBtn: {
-    border: 'none',
-    backgroundColor: 'transparent',
-    fontSize: '18px',
-    cursor: 'pointer',
-  },
-  content: {
-    marginTop: '10px',
-  },
-  emoji: {
-    fontSize: '40px',
-  },
-  message: {
-    fontSize: '18px',
-    margin: '10px 0',
-  },
-  progressBarContainer: {
-    width: '100%',
-    height: '8px',
-    backgroundColor: '#e0e0e0',
-    borderRadius: '4px',
-    margin: '10px 0',
-  },
-  progressBar: {
-    height: '8px',
-    backgroundColor: '#4caf50',
-    borderRadius: '4px',
-  },
-  timeLeft: {
-    fontSize: '14px',
-    color: '#888',
-  },
-  continueBtn: {
-    marginTop: '20px',
-    padding: '10px 20px',
-    backgroundColor: '#4caf50',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-    fontSize: '16px',
-  },
 };
 
 export default Emojis;
